@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { supabase } from "./supabaseClient";
@@ -8,25 +9,42 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   const [session, setSession] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true); // <-- TAMBAHKAN INI
+  const [profile, setProfile] = useState(null); // <-- State untuk profil
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    setAuthLoading(true);
-    // Cek sesi yang sedang berjalan saat aplikasi dimuat
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const fetchSessionAndProfile = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setSession(session);
-      setAuthLoading(false); // <-- TAMBAHKAN INI
-    });
 
-    // Dengarkan perubahan status otentikasi (login/logout)
+      if (session) {
+        // Jika ada sesi, ambil juga profilnya
+        const { data: userProfile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+        setProfile(userProfile);
+      }
+      setAuthLoading(false);
+    };
+
+    fetchSessionAndProfile();
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      // Tidak perlu set loading di sini karena getSession sudah cukup
+      // Jika logout, hapus profil
+      if (!session) {
+        setProfile(null);
+      } else {
+        fetchSessionAndProfile(); // Ambil ulang profil saat login
+      }
     });
 
-    // Berhenti mendengarkan saat komponen di-unmount
     return () => subscription.unsubscribe();
   }, []);
 
@@ -38,9 +56,11 @@ function App() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute session={session} authLoading={authLoading}>
-              {" "}
-              {/* <-- Kirim state loading */}
+            <ProtectedRoute
+              session={session}
+              profile={profile}
+              authLoading={authLoading}
+            >
               <AdminDashboard session={session} />
             </ProtectedRoute>
           }
