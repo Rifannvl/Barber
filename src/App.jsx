@@ -7,10 +7,14 @@ import LoginPage from "./components/LoginPage";
 import AdminDashboard from "./components/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+import CustomChatbot from "./components/CustomChatbot"; // <-- Impor bot baru
+import ChatIcon from "./components/ChatIcon";
+
 function App() {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null); // <-- State untuk profil
   const [authLoading, setAuthLoading] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
@@ -66,6 +70,14 @@ function App() {
           }
         />
       </Routes>
+      <CustomChatbot
+        isOpen={isChatOpen}
+        toggleChat={() => setIsChatOpen(!isChatOpen)}
+      />
+      <ChatIcon
+        isOpen={isChatOpen}
+        toggleChat={() => setIsChatOpen(!isChatOpen)}
+      />
     </BrowserRouter>
   );
 }
