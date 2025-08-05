@@ -1,3 +1,4 @@
+// src/components/ManageSchedules.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabaseClient";
 import Swal from "sweetalert2";
@@ -73,7 +74,6 @@ const ManageSchedules = () => {
   const handleSaveSchedules = async () => {
     if (!selectedBarber || schedules.length === 0) return;
 
-    // PERBAIKAN: Hapus properti 'id' dari setiap objek sebelum mengirim ke Supabase
     const schedulesToSave = schedules.map(({ id, ...rest }) => rest);
 
     const { error } = await supabase
@@ -91,7 +91,7 @@ const ManageSchedules = () => {
   };
 
   return (
-    <div className="bg-dark-card/50 p-6 rounded-xl border border-dark-card">
+    <div className="bg-light-card dark:bg-dark-card/50 p-6 rounded-xl border border-gray-200 dark:border-dark-card">
       <h2 className="font-display text-xl font-bold mb-4">
         Atur Jadwal Kerja Kapster
       </h2>
@@ -102,7 +102,7 @@ const ManageSchedules = () => {
           <select
             value={selectedBarber}
             onChange={(e) => setSelectedBarber(e.target.value)}
-            className="w-full p-2 bg-dark-bg rounded border border-dark-card appearance-none focus:ring-brand-blue"
+            className="w-full p-2 bg-light-bg dark:bg-dark-bg rounded border border-gray-300 dark:border-dark-card appearance-none focus:ring-brand-gold"
           >
             <option value="">-- Pilih Kapster --</option>
             {barbers.map((barber) => (
@@ -128,7 +128,7 @@ const ManageSchedules = () => {
                 return (
                   <div
                     key={day.id}
-                    className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center bg-dark-card p-4 rounded-lg"
+                    className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center bg-gray-50 dark:bg-dark-card p-4 rounded-lg"
                   >
                     <div className="font-semibold text-lg md:col-span-1">
                       {day.name}
@@ -145,7 +145,7 @@ const ManageSchedules = () => {
                             e.target.value
                           )
                         }
-                        className="p-2 bg-dark-bg rounded border border-gray-600 disabled:opacity-50"
+                        className="p-2 bg-light-bg dark:bg-dark-bg rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50"
                       />
                       <span>-</span>
                       <input
@@ -159,7 +159,7 @@ const ManageSchedules = () => {
                             e.target.value
                           )
                         }
-                        className="p-2 bg-dark-bg rounded border border-gray-600 disabled:opacity-50"
+                        className="p-2 bg-light-bg dark:bg-dark-bg rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50"
                       />
                     </div>
                     <div className="flex items-center gap-2 md:col-span-1 md:justify-end">
@@ -174,7 +174,7 @@ const ManageSchedules = () => {
                             e.target.checked
                           )
                         }
-                        className="w-5 h-5 accent-brand-blue"
+                        className="w-5 h-5 accent-brand-gold"
                       />
                       <label htmlFor={`day-off-${day.id}`}>Libur</label>
                     </div>
@@ -184,7 +184,7 @@ const ManageSchedules = () => {
             </div>
             <button
               onClick={handleSaveSchedules}
-              className="mt-6 w-full md:w-auto p-3 bg-brand-blue text-dark-bg font-bold rounded hover:opacity-90"
+              className="mt-6 w-full md:w-auto p-3 bg-brand-gold text-white font-bold rounded hover:opacity-90"
             >
               Simpan Jadwal
             </button>
