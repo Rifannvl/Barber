@@ -14,9 +14,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Loader2, Book, Users, DollarSign } from "lucide-react";
+import { useTheme } from "../context/ThemeContext"; // <-- Impor useTheme
 
 const StatCard = ({ title, value, icon, color }) => (
-  <div className={`p-6 rounded-xl ${color} flex items-center gap-6`}>
+  <div
+    className={`p-6 rounded-xl ${color} flex items-center gap-6 border border-gray-200 dark:border-dark-card`}
+  >
     {icon}
     <div>
       <p className="text-xl font-bold">{value}</p>
@@ -26,7 +29,9 @@ const StatCard = ({ title, value, icon, color }) => (
 );
 
 const AnalyticsDashboard = () => {
+  const { theme } = useTheme(); // <-- Dapatkan tema saat ini
   const [loading, setLoading] = useState(true);
+  // ... sisa state ...
   const [stats, setStats] = useState({
     totalBookings: 0,
     totalRevenue: 0,
@@ -36,11 +41,10 @@ const AnalyticsDashboard = () => {
   const [barberData, setBarberData] = useState([]);
 
   useEffect(() => {
+    // ... Logika fetchData tetap sama ...
     const fetchData = async () => {
       setLoading(true);
-
-      // 1. Fetch Statistik Utama
-      const { data: bookingStats, error: bookingError } = await supabase
+      const { data: bookingStats } = await supabase
         .from("bookings")
         .select("price, customer_phone");
 
@@ -59,21 +63,17 @@ const AnalyticsDashboard = () => {
         });
       }
 
-      // 2. Panggil FUNGSI DATABASE (RPC) yang baru kita buat
       const today = new Date();
       const sevenDaysAgo = new Date(today);
       sevenDaysAgo.setDate(today.getDate() - 6);
 
-      const { data: dailyStats, error: rpcError } = await supabase.rpc(
+      const { data: dailyStats } = await supabase.rpc(
         "get_daily_booking_stats",
         {
           start_date: sevenDaysAgo.toISOString().split("T")[0],
           end_date: today.toISOString().split("T")[0],
         }
       );
-
-      if (rpcError) console.error("RPC Error:", rpcError);
-
       if (dailyStats) {
         const formattedDailyData = dailyStats.map((d) => ({
           name: new Date(d.day).toLocaleDateString("id-ID", {
@@ -84,99 +84,85 @@ const AnalyticsDashboard = () => {
         setDailyData(formattedDailyData);
       }
 
-      // 3. Fetch Performa Kapster
-      const { data: barberStats, error: barberError } = await supabase.rpc(
-        "count_bookings_by_barber"
-      );
-
-      // Note: Supabase.rpc can also call simple group by queries if needed,
-      // but for simplicity, we'll do it on the client for this part.
-      // A more optimized way is another RPC.
       const { data: rawBarberStats } = await supabase
         .from("bookings")
         .select("barbers (name)");
-
       if (rawBarberStats) {
         const counts = rawBarberStats.reduce((acc, { barbers }) => {
-          if (barbers) {
-            acc[barbers.name] = (acc[barbers.name] || 0) + 1;
-          }
+          if (barbers) acc[barbers.name] = (acc[barbers.name] || 0) + 1;
           return acc;
         }, {});
-
         const formattedBarberData = Object.keys(counts).map((name) => ({
           name,
           bookings: counts[name],
         }));
         setBarberData(formattedBarberData);
       }
-
       setLoading(false);
     };
     fetchData();
   }, []);
 
+  const axisColor = theme === "dark" ? "#9ca3af" : "#6b7280";
+  const tooltipStyle = {
+    backgroundColor: theme === "dark" ? "#1A1A1A" : "#FFFFFF",
+    border: `1px solid ${theme === "dark" ? "#2C2C2C" : "#E5E7EB"}`,
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-12 w-12 animate-spin text-brand-blue" />
+        <Loader2 className="h-12 w-12 animate-spin text-brand-gold" />
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
-      {/* Kartu Statistik */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           title="Total Booking"
           value={stats.totalBookings}
           icon={<Book size={32} />}
-          color="bg-dark-card"
+          color="bg-light-card dark:bg-dark-card"
         />
         <StatCard
           title="Total Pendapatan"
           value={`Rp ${stats.totalRevenue.toLocaleString("id-ID")}`}
           icon={<DollarSign size={32} />}
-          color="bg-dark-card"
+          color="bg-light-card dark:bg-dark-card"
         />
         <StatCard
           title="Total Pelanggan"
           value={stats.uniqueCustomers}
           icon={<Users size={32} />}
-          color="bg-dark-card"
+          color="bg-light-card dark:bg-dark-card"
         />
       </div>
 
-      {/* Grafik */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-3 bg-dark-card p-6 rounded-xl">
+        <div className="lg:col-span-3 bg-light-card dark:bg-dark-card p-6 rounded-xl border border-gray-200 dark:border-dark-card">
           <h3 className="font-display text-xl font-bold mb-4">
             Tren Booking (7 Hari Terakhir)
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={dailyData}>
               <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
-              <XAxis dataKey="name" stroke="#9ca3af" />
-              <YAxis stroke="#9ca3af" allowDecimals={false} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#1A1A1A",
-                  border: "1px solid #2C2C2C",
-                }}
-              />
+              <XAxis dataKey="name" stroke={axisColor} />
+              <YAxis stroke={axisColor} allowDecimals={false} />
+              <Tooltip contentStyle={tooltipStyle} />
               <Legend />
               <Line
                 type="monotone"
                 dataKey="bookings"
                 name="Jumlah Booking"
-                stroke="#00A9FF"
+                stroke="#B9945A"
                 strokeWidth={2}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <div className="lg:col-span-2 bg-dark-card p-6 rounded-xl">
+        <div className="lg:col-span-2 bg-light-card dark:bg-dark-card p-6 rounded-xl border border-gray-200 dark:border-dark-card">
           <h3 className="font-display text-xl font-bold mb-4">
             Performa Kapster
           </h3>
@@ -187,21 +173,18 @@ const AnalyticsDashboard = () => {
               margin={{ right: 30 }}
             >
               <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
-              <XAxis type="number" stroke="#9ca3af" allowDecimals={false} />
+              <XAxis type="number" stroke={axisColor} allowDecimals={false} />
               <YAxis
                 type="category"
                 dataKey="name"
-                stroke="#9ca3af"
+                stroke={axisColor}
                 width={80}
               />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "#1A1A1A",
-                  border: "1px solid #2C2C2C",
-                }}
-                cursor={{ fill: "rgba(0, 169, 255, 0.1)" }}
+                contentStyle={tooltipStyle}
+                cursor={{ fill: "rgba(185, 148, 90, 0.1)" }}
               />
-              <Bar dataKey="bookings" name="Jumlah Booking" fill="#00A9FF" />
+              <Bar dataKey="bookings" name="Jumlah Booking" fill="#B9945A" />
             </BarChart>
           </ResponsiveContainer>
         </div>
