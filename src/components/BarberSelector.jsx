@@ -1,4 +1,3 @@
-// src/components/BarberSelector.jsx
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { ChevronDown } from "lucide-react";
@@ -11,11 +10,8 @@ const BarberSelector = ({ onBarberSelect }) => {
     const fetchBarbers = async () => {
       setLoading(true);
       const { data, error } = await supabase.from("barbers").select("*");
-      if (error) {
-        console.error("Error fetching barbers:", error);
-      } else {
-        setBarbers(data || []);
-      }
+      if (error) console.error("Error fetching barbers:", error);
+      else setBarbers(data || []);
       setLoading(false);
     };
     fetchBarbers();
@@ -23,13 +19,13 @@ const BarberSelector = ({ onBarberSelect }) => {
 
   if (loading) {
     return (
-      <div className="h-12 w-full bg-dark-card rounded-lg animate-pulse"></div>
+      <div className="h-14 w-full bg-gray-200 dark:bg-dark-card rounded-lg animate-pulse"></div>
     );
   }
 
   if (barbers.length === 0) {
     return (
-      <p className="text-center text-gray-400">
+      <p className="text-center text-gray-500">
         Belum ada kapster yang terdaftar.
       </p>
     );
@@ -39,7 +35,7 @@ const BarberSelector = ({ onBarberSelect }) => {
     <div className="mb-8">
       <label
         htmlFor="barber-select"
-        className="font-display text-2xl font-bold text-center mb-4 block text-brand-blue"
+        className="font-display text-2xl font-bold text-center mb-4 block text-yellow-600 dark:text-brand-gold"
       >
         1. Pilih Kapster
       </label>
@@ -51,7 +47,7 @@ const BarberSelector = ({ onBarberSelect }) => {
             onBarberSelect(selected || null);
           }}
           defaultValue=""
-          className="w-full p-4 bg-dark-card border border-gray-700 rounded-lg appearance-none focus:ring-2 focus:ring-brand-blue focus:outline-none font-semibold text-lg"
+          className="w-full p-4 bg-light-card dark:bg-dark-card border border-gray-300 dark:border-gray-700 rounded-lg appearance-none focus:ring-2 focus:ring-brand-gold focus:outline-none font-semibold text-lg"
         >
           <option value="" disabled>
             -- Pilih salah satu kapster --
