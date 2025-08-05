@@ -1,9 +1,11 @@
 // src/components/BookingForm.jsx
+
 import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 import Swal from "sweetalert2";
 import { X } from "lucide-react";
 import { format } from "date-fns";
+import { useTheme } from "../context/ThemeContext"; // Impor useTheme
 
 const BookingForm = ({
   selectedDate,
@@ -12,9 +14,10 @@ const BookingForm = ({
   onClose,
   onSuccess,
 }) => {
+  const { theme } = useTheme(); // Dapatkan tema saat ini untuk SweetAlert
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState(""); // <-- State baru untuk email
+  const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -51,7 +54,7 @@ const BookingForm = ({
     const { error } = await supabase.from("bookings").insert({
       customer_name: name,
       customer_phone: phone,
-      customer_email: email, // <-- Mengirim data email ke Supabase
+      customer_email: email,
       booking_time: bookingTime.toISOString(),
       status: "dipesan",
       barber_id: selectedBarber.id,
@@ -65,17 +68,17 @@ const BookingForm = ({
         icon: "error",
         title: "Oops...",
         text: "Gagal melakukan booking. Silakan coba lagi.",
-        background: "#1A1A1A",
-        color: "#F0F0F0",
+        background: theme === "dark" ? "#1F2937" : "#FFFFFF",
+        color: theme === "dark" ? "#F3F4F6" : "#111827",
       });
     } else {
       Swal.fire({
         icon: "success",
         title: "Booking Berhasil!",
         text: `Konfirmasi akan segera dikirim ke email Anda di ${email}.`,
-        background: "#1A1A1A",
-        color: "#F0F0F0",
-        confirmButtonColor: "#00A9FF",
+        background: theme === "dark" ? "#1F2937" : "#FFFFFF",
+        color: theme === "dark" ? "#F3F4F6" : "#111827",
+        confirmButtonColor: "#B9945A",
       }).then(() => {
         onSuccess();
       });
@@ -83,34 +86,32 @@ const BookingForm = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-dark-card w-full max-w-md p-8 rounded-2xl shadow-2xl relative">
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 animate-[fadeIn_0.3s_ease-out]">
+      <div className="bg-light-card dark:bg-dark-card w-full max-w-md p-8 rounded-2xl shadow-2xl relative border border-gray-200 dark:border-dark-card animate-[scaleUp_0.4s_ease-out_forwards]">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-brand-blue transition-colors"
+          className="absolute top-4 right-4 text-gray-500 dark:text-gray-400 hover:text-brand-gold transition-colors"
         >
-          {" "}
-          <X size={24} />{" "}
+          <X size={24} />
         </button>
         <h2 className="font-display text-2xl font-bold text-center mb-2">
           Konfirmasi Booking
         </h2>
-        <p className="text-center text-gray-400">
+        <p className="text-center text-gray-500 dark:text-gray-400">
           dengan{" "}
-          <span className="font-bold text-light-text">
+          <span className="font-bold text-dark-text dark:text-light-text">
             {selectedBarber.name}
           </span>
         </p>
-        <p className="text-center text-brand-blue mb-6 font-semibold">
-          {" "}
-          {format(selectedDate, "d MMMM yyyy")} - Pukul {selectedSlot}{" "}
+        <p className="text-center text-yellow-600 dark:text-brand-gold mb-6 font-semibold">
+          {format(selectedDate, "d MMMM yyyy")} - Pukul {selectedSlot}
         </p>
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="mb-4">
             <label
               htmlFor="name"
-              className="block mb-2 font-semibold text-gray-300"
+              className="block mb-2 font-semibold text-gray-700 dark:text-gray-300"
             >
               Nama Lengkap
             </label>
@@ -119,9 +120,11 @@ const BookingForm = ({
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className={`w-full p-3 bg-dark-bg rounded-lg border transition ${
-                errors.name ? "border-red-500" : "border-dark-card"
-              } focus:ring-2 focus:ring-brand-blue outline-none`}
+              className={`w-full p-3 bg-light-bg dark:bg-dark-bg rounded-lg border transition ${
+                errors.name
+                  ? "border-red-500"
+                  : "border-gray-300 dark:border-dark-card"
+              } focus:ring-2 focus:ring-brand-gold outline-none`}
             />
             {errors.name && (
               <p className="text-red-500 text-sm mt-1">{errors.name}</p>
@@ -131,7 +134,7 @@ const BookingForm = ({
           <div className="mb-4">
             <label
               htmlFor="email"
-              className="block mb-2 font-semibold text-gray-300"
+              className="block mb-2 font-semibold text-gray-700 dark:text-gray-300"
             >
               Alamat Email
             </label>
@@ -140,9 +143,9 @@ const BookingForm = ({
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full p-3 bg-dark-bg rounded-lg border transition ${
+              className={`w-full p-3 bg-light-bg dark:bg-dark-bg rounded-lg border transition ${
                 errors.email ? "border-red-500" : "border-dark-card"
-              } focus:ring-2 focus:ring-brand-blue outline-none`}
+              } focus:ring-2 focus:ring-brand-gold outline-none`}
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -152,7 +155,7 @@ const BookingForm = ({
           <div className="mb-6">
             <label
               htmlFor="phone"
-              className="block mb-2 font-semibold text-gray-300"
+              className="block mb-2 font-semibold text-gray-700 dark:text-gray-300"
             >
               Nomor WhatsApp
             </label>
@@ -161,9 +164,9 @@ const BookingForm = ({
               id="phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className={`w-full p-3 bg-dark-bg rounded-lg border transition ${
+              className={`w-full p-3 bg-light-bg dark:bg-dark-bg rounded-lg border transition ${
                 errors.phone ? "border-red-500" : "border-dark-card"
-              } focus:ring-2 focus:ring-brand-blue outline-none`}
+              } focus:ring-2 focus:ring-brand-gold outline-none`}
             />
             {errors.phone && (
               <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
@@ -173,7 +176,7 @@ const BookingForm = ({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full p-4 bg-brand-blue text-dark-bg font-bold rounded-lg hover:opacity-90 transition-opacity disabled:bg-gray-500"
+            className="w-full p-4 bg-brand-gold text-white font-bold rounded-lg hover:opacity-90 transition-opacity disabled:bg-gray-400 dark:disabled:bg-gray-600"
           >
             {isSubmitting ? "Memproses..." : "Booking Sekarang"}
           </button>
