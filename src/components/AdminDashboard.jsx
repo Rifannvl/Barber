@@ -8,13 +8,15 @@ import Swal from "sweetalert2";
 import ManageBarbers from "./ManageBarbers";
 import ManageSchedules from "./ManageSchedules";
 import AnalyticsDashboard from "./AnalyticsDashboard";
+import ThemeSwitcher from "./ThemeSwitcher";
 import { LogOut, RefreshCw } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion"; // <-- Impor untuk animasi
 
-// Komponen untuk menampilkan daftar booking
+// Komponen untuk menampilkan daftar booking (tidak ada perubahan)
 const BookingList = ({ bookings, loading, onStatusChange }) => (
   <div className="overflow-x-auto">
     <table className="w-full text-left">
-      <thead className="border-b border-dark-card">
+      <thead className="border-b border-gray-200 dark:border-dark-card">
         <tr>
           <th className="p-4 font-semibold">Pelanggan</th>
           <th className="p-4 font-semibold">Kapster</th>
@@ -40,11 +42,11 @@ const BookingList = ({ bookings, loading, onStatusChange }) => (
           bookings.map((booking) => (
             <tr
               key={booking.id}
-              className="border-b border-dark-card last:border-0 hover:bg-dark-card/50 transition-colors"
+              className="border-b border-gray-200 dark:border-dark-card last:border-0 hover:bg-gray-50 dark:hover:bg-dark-card/50 transition-colors"
             >
               <td className="p-4">
                 <div className="font-bold">{booking.customer_name}</div>
-                <div className="text-sm text-gray-400">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                   {booking.customer_phone}
                 </div>
               </td>
@@ -62,10 +64,10 @@ const BookingList = ({ bookings, loading, onStatusChange }) => (
                 <span
                   className={`px-3 py-1 text-sm font-semibold rounded-full ${
                     booking.status === "selesai"
-                      ? "bg-green-500/20 text-green-400"
+                      ? "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400"
                       : booking.status === "dibatalkan"
-                      ? "bg-red-500/20 text-red-400"
-                      : "bg-blue-500/20 text-blue-400"
+                      ? "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400"
+                      : "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400"
                   }`}
                 >
                   {booking.status}
@@ -75,7 +77,7 @@ const BookingList = ({ bookings, loading, onStatusChange }) => (
                 <select
                   value={booking.status}
                   onChange={(e) => onStatusChange(booking.id, e.target.value)}
-                  className="bg-dark-bg border border-gray-600 rounded-lg p-2 font-semibold outline-none focus:ring-2 focus:ring-brand-blue"
+                  className="bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg p-2 font-semibold outline-none focus:ring-2 focus:ring-brand-gold"
                 >
                   <option value="dipesan">Dipesan</option>
                   <option value="selesai">Selesai</option>
@@ -92,7 +94,7 @@ const BookingList = ({ bookings, loading, onStatusChange }) => (
 
 // Komponen utama Dasbor Admin
 const AdminDashboard = ({ session }) => {
-  const [activeTab, setActiveTab] = useState("analytics"); // <-- HANYA SATU DEKLARASI
+  const [activeTab, setActiveTab] = useState("analytics");
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -102,12 +104,8 @@ const AdminDashboard = ({ session }) => {
       .from("bookings")
       .select("*, barbers ( name )")
       .order("booking_time", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching bookings:", error);
-    } else {
-      setBookings(data || []);
-    }
+    if (error) console.error("Error fetching bookings:", error);
+    else setBookings(data || []);
     setLoading(false);
   }, []);
 
@@ -122,10 +120,8 @@ const AdminDashboard = ({ session }) => {
       .from("bookings")
       .update({ status: newStatus })
       .eq("id", bookingId);
-
-    if (error) {
-      Swal.fire("Error", "Gagal memperbarui status.", "error");
-    } else {
+    if (error) Swal.fire("Error", "Gagal memperbarui status.", "error");
+    else {
       Swal.fire({
         toast: true,
         position: "top-end",
@@ -150,17 +146,19 @@ const AdminDashboard = ({ session }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-dark-bg p-4 sm:p-8 font-sans">
+    <div className="min-h-screen bg-light-bg dark:bg-dark-bg text-dark-text dark:text-light-text p-4 sm:p-8 font-sans transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         <header className="flex justify-between items-center mb-8">
           <div>
             <h1 className="font-display text-3xl font-bold">Dasbor Admin</h1>
-            <p className="text-gray-400">Email: {session.user.email}</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              Email: {session.user.email}
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <button
               onClick={fetchBookings}
-              className="text-gray-400 hover:text-brand-blue transition-colors"
+              className="text-gray-500 dark:text-gray-400 hover:text-brand-gold transition-colors"
               title="Segarkan Data"
             >
               <RefreshCw
@@ -169,24 +167,25 @@ const AdminDashboard = ({ session }) => {
                 }
               />
             </button>
+            <ThemeSwitcher />
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 bg-dark-card hover:bg-red-500/20 text-red-400 font-semibold py-2 px-4 rounded-lg transition-colors"
+              className="flex items-center gap-2 bg-gray-100 dark:bg-dark-card hover:bg-red-100 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 font-semibold py-2 px-4 rounded-lg transition-colors"
             >
               <LogOut size={18} /> Logout
             </button>
           </div>
         </header>
 
-        <div className="mb-6 border-b border-dark-card">
+        <div className="mb-6 border-b border-gray-200 dark:border-dark-card">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`py-2 px-4 font-semibold transition-colors ${
                 activeTab === tab.id
-                  ? "border-b-2 border-brand-blue text-brand-blue"
-                  : "text-gray-400 hover:text-light-text"
+                  ? "border-b-2 border-brand-gold text-brand-gold"
+                  : "text-gray-500 hover:text-dark-text dark:text-gray-400 dark:hover:text-light-text"
               }`}
             >
               {tab.label}
@@ -194,19 +193,29 @@ const AdminDashboard = ({ session }) => {
           ))}
         </div>
 
-        <div>
-          {activeTab === "analytics" && <AnalyticsDashboard />}
-          {activeTab === "bookings" && (
-            <div className="bg-dark-card/50 p-1 rounded-2xl shadow-lg border border-dark-card">
-              <BookingList
-                bookings={bookings}
-                loading={loading}
-                onStatusChange={handleStatusChange}
-              />
-            </div>
-          )}
-          {activeTab === "barbers" && <ManageBarbers />}
-          {activeTab === "schedules" && <ManageSchedules />}
+        <div className="mt-6">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -10, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              {activeTab === "analytics" && <AnalyticsDashboard />}
+              {activeTab === "bookings" && (
+                <div className="bg-light-card dark:bg-dark-card/50 p-1 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-card">
+                  <BookingList
+                    bookings={bookings}
+                    loading={loading}
+                    onStatusChange={handleStatusChange}
+                  />
+                </div>
+              )}
+              {activeTab === "barbers" && <ManageBarbers />}
+              {activeTab === "schedules" && <ManageSchedules />}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>
